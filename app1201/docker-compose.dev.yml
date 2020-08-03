@@ -16,16 +16,16 @@ services:
     environment:
       - NODE_ENV=dev
 
-#  express: #name of the second service
-#    build: # specify the directory of the Dockerfile
-#      context: ./api
-#      dockerfile: debug.dockerfile
-#    container_name: mean_express
-#    volumes:
-#      - ./api:/api
-#      - /api/node_modules
-#    ports:
-#      - "3000:3000" #specify ports forewarding
+  express: #name of the second service
+    build: # specify the directory of the Dockerfile
+      context: ./api
+      dockerfile: Dockerfile.dev
+    container_name: cook1201_express
+    volumes:
+      - ./api:/api
+      - /api/node_modules
+    ports:
+      - "5000:5000" #specify ports forewarding
 #    environment:
 #      - SECRET=Thisismysecret
 #      - NODE_ENV=development

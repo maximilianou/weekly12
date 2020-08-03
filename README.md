@@ -1,6 +1,9 @@
 ### ../../../app1201/Makefile 
 ```
 ng1:
+	nvm install 14
+	nvm use 14
+	npm install -g npm@latest
 	npm install -g @angular/cli
 	ng new frontend
 ng2: 
@@ -12,30 +15,18 @@ ng4:
 ng5: 
 	docker system prune -a # delete all docker images in your computer
 ng6:
+	mkdir api
+	cd api && npm init -y
+	cd api && npm install nodemon --save-dev
+	cd api && npm install bcryptjs body-parser cors express jsonwebtoken mongoose validator --save	
+ng8:
 	#cd frontend && ng generate module app-routing --flat --module=app
-ng7:
+ng9:
 	#cd frontend && npm install angular-in-memory-web-api --save
 	#cd frontend && ng generate service InMemoryData
 	#cd frontend && ng generate component dish-search
 
 
-
-```
-### ../../../app1201/frontend/Dockerfile.dev 
-```
-# Create image based off of the official 12.8-alpine
-FROM node:14-alpine
-# disabling ssl for npm for Dev or if you are behind proxy
-RUN npm set strict-ssl false
-#RUN echo "nameserver 8.8.8.8" |  tee /etc/resolv.conf > /dev/null
-WORKDIR /frontend
-# Copy dependency definitions
-COPY package.json ./
-## installing and Storing node modules on a separate layer will prevent unnecessary npm installs at each build
-RUN npm i
-COPY . .
-EXPOSE 4200 49153
-CMD ["npm", "start"]
 
 ```
 ### ../../../app1201/docker-compose.dev.yml 
@@ -58,16 +49,16 @@ services:
     environment:
       - NODE_ENV=dev
 
-#  express: #name of the second service
-#    build: # specify the directory of the Dockerfile
-#      context: ./api
-#      dockerfile: debug.dockerfile
-#    container_name: mean_express
-#    volumes:
-#      - ./api:/api
-#      - /api/node_modules
-#    ports:
-#      - "3000:3000" #specify ports forewarding
+  express: #name of the second service
+    build: # specify the directory of the Dockerfile
+      context: ./api
+      dockerfile: Dockerfile.dev
+    container_name: cook1201_express
+    volumes:
+      - ./api:/api
+      - /api/node_modules
+    ports:
+      - "5000:5000" #specify ports forewarding
 #    environment:
 #      - SECRET=Thisismysecret
 #      - NODE_ENV=development
@@ -96,6 +87,42 @@ services:
 #      - ./mongo/db:/data/db
 #    ports:
 #      - "27017:27017" # specify port forewarding
+
+```
+### ../../../app1201/frontend/Dockerfile.dev 
+```
+# Create image based off of the official 12.8-alpine
+FROM node:14-alpine
+# disabling ssl for npm for Dev or if you are behind proxy
+RUN npm set strict-ssl false
+#RUN echo "nameserver 8.8.8.8" |  tee /etc/resolv.conf > /dev/null
+WORKDIR /frontend
+# Copy dependency definitions
+COPY package.json ./
+## installing and Storing node modules on a separate layer will prevent unnecessary npm installs at each build
+RUN npm i
+COPY . .
+EXPOSE 4200 49153
+CMD ["npm", "start"]
+
+```
+### ../../../app1201/api/Dockerfile.dev 
+```
+# Create image based off of the official 12.8-alpine
+FROM node:14-alpine
+# disabling ssl for npm for Dev or if you are behind proxy
+RUN npm set strict-ssl false
+# Change directory so that our commands run inside this new directory
+WORKDIR /api
+# Copy dependency definitions
+COPY package.json ./
+## installing node modules
+RUN npm i
+COPY . .
+# Expose the port the app runs in
+EXPOSE 5000
+# Serve the app
+CMD [ "npm", "run", "dev-server" ]
 
 ```
 ### ../../../app1201/frontend/package.json 
@@ -147,18 +174,34 @@ services:
   }
 }
 ```
-### ../../../app1201/frontend/src/app/app-routing.module.ts 
+### ../../../app1201/api/package.json 
 ```
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-
-const routes: Routes = [];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
-})
-export class AppRoutingModule { }
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev-server": "nodemon -L server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.27",
+    "validator": "^13.1.1"
+  }
+}
 
 ```
 ### ../../../app1201/frontend/src/app/app.module.ts 
@@ -195,6 +238,42 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'frontend';
 }
+
+```
+### ../../../app1201/frontend/src/app/app-routing.module.ts 
+```
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+const routes: Routes = [];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+```
+### ../../../app1201/api/server.js 
+```
+// ./api/server.js
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+const app = express();
+
+
+app.get('/', function(req, res){
+  res.send('hello');
+} );
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server listening in port : ${PORT}`);
+});
 
 ```
 ### ../../../app1201/frontend/src/app/app.component.html 

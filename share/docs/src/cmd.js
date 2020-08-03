@@ -36,6 +36,10 @@ const filesIn = [
     path: "../../../app1201/api/server.js",
     mark: "\n```\n",
   },
+  {
+    path: "../../../app1201/api/config/environment.js",
+    mark: "\n```\n",
+  },
 ];
 const publish = (cmd) => {
   remove({ fileOut: cmd.fileOut });

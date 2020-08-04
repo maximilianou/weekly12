@@ -40,6 +40,23 @@ ng9:
 
 
 ```
+### ../../../app1201/frontend/Dockerfile.dev 
+```
+# Create image based off of the official 12.8-alpine
+FROM node:14-alpine
+# disabling ssl for npm for Dev or if you are behind proxy
+RUN npm set strict-ssl false
+#RUN echo "nameserver 8.8.8.8" |  tee /etc/resolv.conf > /dev/null
+WORKDIR /frontend
+# Copy dependency definitions
+COPY package.json ./
+## installing and Storing node modules on a separate layer will prevent unnecessary npm installs at each build
+RUN npm i
+COPY . .
+EXPOSE 4200 49153
+CMD ["npm", "start"]
+
+```
 ### ../../../app1201/docker-compose.dev.yml 
 ```
 version: "3.8" # specify docker-compose version
@@ -100,23 +117,6 @@ services:
       - "27017:27017" # specify port forewarding
 
 ```
-### ../../../app1201/frontend/Dockerfile.dev 
-```
-# Create image based off of the official 12.8-alpine
-FROM node:14-alpine
-# disabling ssl for npm for Dev or if you are behind proxy
-RUN npm set strict-ssl false
-#RUN echo "nameserver 8.8.8.8" |  tee /etc/resolv.conf > /dev/null
-WORKDIR /frontend
-# Copy dependency definitions
-COPY package.json ./
-## installing and Storing node modules on a separate layer will prevent unnecessary npm installs at each build
-RUN npm i
-COPY . .
-EXPOSE 4200 49153
-CMD ["npm", "start"]
-
-```
 ### ../../../app1201/api/Dockerfile.dev 
 ```
 # Create image based off of the official 12.8-alpine
@@ -134,42 +134,6 @@ COPY . .
 EXPOSE 5000
 # Serve the app
 CMD [ "npm", "run", "dev-server" ]
-
-```
-### ../../../app1201/api/package.json 
-```
-{
-  "name": "api",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "dev-server": "nodemon -L server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "eslint": "^7.6.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "nodemon": "^2.0.4",
-    "prettier": "^2.0.5"
-  },
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "body-parser": "^1.19.0",
-    "cors": "^2.8.5",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "express-jwt": "^6.0.0",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.9.27",
-    "validator": "^13.1.1"
-  }
-}
 
 ```
 ### ../../../app1201/frontend/package.json 
@@ -223,6 +187,42 @@ CMD [ "npm", "run", "dev-server" ]
 }
 
 ```
+### ../../../app1201/api/package.json 
+```
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev-server": "nodemon -L server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^7.6.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "nodemon": "^2.0.4",
+    "prettier": "^2.0.5"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-jwt": "^6.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.27",
+    "validator": "^13.1.1"
+  }
+}
+
+```
 ### ../../../app1201/frontend/src/app/app.module.ts 
 ```
 import { BrowserModule } from '@angular/platform-browser';
@@ -259,12 +259,19 @@ export class AppModule { }
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-const routes: Routes = [];
+import { ProfileComponent } from './profile/profile.component';
+import { HomeComponent } from './home/home.component';
+
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'profile', component: ProfileComponent }
+];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
+
 export class AppRoutingModule { }
 
 ```
@@ -280,6 +287,35 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'frontend';
 }
+
+```
+### ../../../app1201/frontend/src/app/app.component.html 
+```
+<div>
+    <app-header></app-header>
+    <router-outlet></router-outlet>
+</div>
+
+```
+### ../../../app1201/api/config/environment.js 
+```
+module.exports = {
+  mongodb: {
+    uri:
+      `mongodb://${
+        process.env.MONGO_DB_USERNAME
+      }:${
+        process.env.MONGO_DB_PASSWORD
+      }@${
+        process.env.MONGO_DB_HOST
+      }${process.env.MONGO_DB_PORT
+        ? `:${process.env.MONGO_DB_PORT}/`
+        : '/'
+      }${process.env.MONGO_DB_DATABASE
+      }${process.env.MONGO_DB_PARAMETERS}`,
+  },
+  secret: process.env.SECRET,
+};
 
 ```
 ### ../../../app1201/api/server.js 
@@ -326,34 +362,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
 });
-
-```
-### ../../../app1201/frontend/src/app/app.component.html 
-```
-<div>
-    <app-header></app-header>
-</div>
-
-```
-### ../../../app1201/api/config/environment.js 
-```
-module.exports = {
-  mongodb: {
-    uri:
-      `mongodb://${
-        process.env.MONGO_DB_USERNAME
-      }:${
-        process.env.MONGO_DB_PASSWORD
-      }@${
-        process.env.MONGO_DB_HOST
-      }${process.env.MONGO_DB_PORT
-        ? `:${process.env.MONGO_DB_PORT}/`
-        : '/'
-      }${process.env.MONGO_DB_DATABASE
-      }${process.env.MONGO_DB_PARAMETERS}`,
-  },
-  secret: process.env.SECRET,
-};
 
 ```
 ### ../../../app1201/api/controllers/UserController.js 
@@ -609,16 +617,16 @@ export class HeaderComponent implements OnInit {
 <nav class="navbar navbar-light navbar-extend-lg" style="background-color: #e3f2fd;">
     <div class="container">
         <a routerLink="/" class="navbar-brand" routerLinkActive="active">AppDividend</a>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav m1-auto">
+        <div class="" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
                 <ng-container>
                     <li class="nav-item">
-                        <a routerLink="/" class="nav-link" routerLinkActive="active">
+                        <a routerLink="/auth/login" class="nav-link" routerLinkActive="active">
                             Login
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a routerLink="/" class="nav-link">
+                        <a routerLink="/auth/register" class="nav-link">
                             Register
                         </a>
                     </li>
@@ -669,6 +677,7 @@ export class AuthComponent implements OnInit {
 ```
 ### ../../../app1201/frontend/src/app/auth/auth.module.ts 
 ```
+import { Routes, RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -679,15 +688,25 @@ import { LoginComponent } from './login/login.component';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 
+const routes: Routes = [
+  { path: 'auth',
+    component: AuthComponent,
+    children: [
+      { path: 'login', component: LoginComponent },
+      { path: 'register', component: RegisterComponent }
+    ]
+  }
+];
+
 @NgModule({
   declarations: [
     RegisterComponent, 
     LoginComponent,
-    AuthComponent
   ],
   imports: [
     CommonModule
   ],
+  exports: [RouterModule],
   providers: [
     AuthService,
     AuthGuard
@@ -709,25 +728,6 @@ export class AuthService {
 }
 
 ```
-### ../../../app1201/frontend/src/app/auth/auth.guard.ts 
-```
-import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
-  canActivate(
-    next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    return true;
-  }
-  
-}
-
-```
 ### ../../../app1201/frontend/src/app/auth/register/register.component.ts 
 ```
 import { Component, OnInit } from '@angular/core';
@@ -744,6 +744,25 @@ export class RegisterComponent implements OnInit {
   ngOnInit(): void {
   }
 
+}
+
+```
+### ../../../app1201/frontend/src/app/auth/auth.guard.ts 
+```
+import { Injectable } from '@angular/core';
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+  canActivate(
+    next: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    return true;
+  }
+  
 }
 
 ```

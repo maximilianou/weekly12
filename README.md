@@ -22,6 +22,9 @@ ng6:
 ng8:
 	#cd frontend && ng generate module app-routing --flat --module=app
 	cd frontend && ng generate component home
+	cd frontend && ng generate component header
+	cd frontend && ng generate component profile
+	cd frontend && ng generate component auth
 ng9:
 	#cd frontend && npm install angular-in-memory-web-api --save
 	#cd frontend && ng generate service InMemoryData
@@ -219,11 +222,17 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
+import { ProfileComponent } from './profile/profile.component';
+import { HeaderComponent } from './header/header.component';
+import { AuthComponent } from './auth/auth.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    HomeComponent
+    HomeComponent,
+    ProfileComponent,
+    HeaderComponent,
+    AuthComponent
   ],
   imports: [
     BrowserModule,
@@ -343,7 +352,9 @@ const User = require('../models/User');
 const env = require('../config/environment');
 
 exports.register = function (req, res) {
-  const { username, email, password, passwordConfirmation } = req.body;
+  const {
+    username, email, password, passwordConfirmation,
+  } = req.body;
   if (!email || !password) {
     return res.status(422).json({ error: 'Please provide email or password' });
   }
@@ -388,13 +399,48 @@ exports.login = function (req, res) {
           username: user.username,
         },
         env.secret,
-        { expiresIn: '1,h' }
+        { expiresIn: '1,h' },
       );
       return res.json(jsonToke, n);
     }
     return res.status(422).json({ error: 'Wrong email or password' });
   });
 };
+
+exports.authMiddleware = function (req, res, next) {
+  const jsonToken = req.headers.authorization;
+  try {
+    if (jsonToken) {
+      const user = parseToken(jsonToken);
+      User.findById(user.userId, (err, user) => {
+        if (err) {
+          return res.status(422).json({
+            error: 'Opps!, Something went Wrong!!',
+          });
+        }
+        if (user) {
+          res.locals.user = user;
+          next();
+        } else {
+          return res.status(422).json({
+            error: 'Not authorized User.',
+          });
+        }
+      });
+    } else {
+      return res.status(422).json({ error: 'Not authorized user' });
+    }
+  } catch (err) {
+    res.status(403).json({
+      success: false,
+      message: err,
+    });
+  }
+};
+
+function parseToken(token) {
+  return jwt.verify(token.split(' ')[1], env.secret);
+}
 
 ```
 ### ../../../app1201/api/models/User.js 
@@ -467,10 +513,16 @@ module.exports = mongoose.model('User', userSchema);
 const express = require('express');
 const user = require('../controllers/UserController');
 
+const { authMiddleware } = require('../controllers/UserController');
+
 const router = express.Router();
 
 router.post('/register', user.register);
 router.post('/login', user.login);
+
+router.get('/profile', authMiddleware, (req, res) => {
+  res.json({ access: true });
+});
 
 router.get('/index', (req, res) => {
   res.json({ access: true });
@@ -520,4 +572,61 @@ export class HomeComponent implements OnInit {
 .marge{
     margin-top: 1%;
 }
+```
+### ../../../app1201/frontend/src/app/header/header.component.ts 
+```
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-header',
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css']
+})
+export class HeaderComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+}
+
+```
+### ../../../app1201/frontend/src/app/auth/auth.component.ts 
+```
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-auth',
+  templateUrl: './auth.component.html',
+  styleUrls: ['./auth.component.css']
+})
+export class AuthComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+}
+
+```
+### ../../../app1201/frontend/src/app/profile/profile.component.ts 
+```
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.css']
+})
+export class ProfileComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+}
+
 ```

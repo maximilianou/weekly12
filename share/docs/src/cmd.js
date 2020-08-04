@@ -64,6 +64,18 @@ const filesIn = [
     path: '../../../app1201/frontend/src/app/home/home.component.css',
     mark: '\n```\n',
   },
+  {
+    path: '../../../app1201/frontend/src/app/header/header.component.ts',
+    mark: '\n```\n',
+  },
+  {
+    path: '../../../app1201/frontend/src/app/auth/auth.component.ts',
+    mark: '\n```\n',
+  },
+  {
+    path: '../../../app1201/frontend/src/app/profile/profile.component.ts',
+    mark: '\n```\n',
+  },
 ];
 const publish = (cmd) => {
   remove({ fileOut: cmd.fileOut });

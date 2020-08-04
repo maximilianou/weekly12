@@ -20,6 +20,9 @@ ng6:
 ng8:
 	#cd frontend && ng generate module app-routing --flat --module=app
 	cd frontend && ng generate component home
+	cd frontend && ng generate component header
+	cd frontend && ng generate component profile
+	cd frontend && ng generate component auth
 ng9:
 	#cd frontend && npm install angular-in-memory-web-api --save
 	#cd frontend && ng generate service InMemoryData

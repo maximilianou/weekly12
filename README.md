@@ -1,38 +1,3 @@
-### ../../../app1201/Makefile 
-```
-ng1:
-	nvm install 14
-	nvm use 14
-	npm install -g npm@latest
-	npm install -g @angular/cli
-	ng new frontend
-ng2: 
-	cd frontend && ng serve
-ng3:
-	docker-compose -f docker-compose.dev.yml up	--build
-ng4:
-	docker-compose -f docker-compose.dev.yml down	
-ng5: 
-	docker system prune -a # delete all docker images in your computer
-ng6:
-	mkdir api
-	cd api && npm init -y
-	cd api && npm install nodemon --save-dev
-	cd api && npm install bcryptjs body-parser cors express jsonwebtoken mongoose validator --save	
-ng8:
-	#cd frontend && ng generate module app-routing --flat --module=app
-	cd frontend && ng generate component home
-	cd frontend && ng generate component header
-	cd frontend && ng generate component profile
-	cd frontend && ng generate component auth
-ng9:
-	#cd frontend && npm install angular-in-memory-web-api --save
-	#cd frontend && ng generate service InMemoryData
-	#cd frontend && ng generate component dish-search
-
-
-
-```
 ### ../../../app1201/docker-compose.dev.yml 
 ```
 version: "3.8" # specify docker-compose version
@@ -91,6 +56,47 @@ services:
       - ./mongo/db:/data/db
     ports:
       - "27017:27017" # specify port forewarding
+
+```
+### ../../../app1201/Makefile 
+```
+ng1:
+	nvm install 14
+	nvm use 14
+	npm install -g npm@latest
+	npm install -g @angular/cli
+	ng new frontend
+ng2: 
+	cd frontend && ng serve
+ng3:
+	docker-compose -f docker-compose.dev.yml up	--build
+ng4:
+	docker-compose -f docker-compose.dev.yml down	
+ng5: 
+	docker system prune -a # delete all docker images in your computer
+ng6:
+	mkdir api
+	cd api && npm init -y
+	cd api && npm install nodemon --save-dev
+	cd api && npm install bcryptjs body-parser cors express jsonwebtoken mongoose validator --save	
+ng8:
+	#cd frontend && ng generate module app-routing --flat --module=app
+	cd frontend && ng generate component home
+	cd frontend && ng generate component header
+	cd frontend && ng generate component profile
+	cd frontend && ng generate component auth
+	cd frontend && ng generate module auth
+	cd frontend && ng generate service auth/auth
+	cd frontend && ng generate guard auth/auth
+	cd frontend && ng generate component auth/register
+	cd frontend && ng generate component auth/login
+
+ng9:
+	#cd frontend && npm install angular-in-memory-web-api --save
+	#cd frontend && ng generate service InMemoryData
+	#cd frontend && ng generate component dish-search
+
+
 
 ```
 ### ../../../app1201/frontend/Dockerfile.dev 
@@ -592,6 +598,25 @@ export class HeaderComponent implements OnInit {
 }
 
 ```
+### ../../../app1201/frontend/src/app/profile/profile.component.ts 
+```
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.css']
+})
+export class ProfileComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+}
+
+```
 ### ../../../app1201/frontend/src/app/auth/auth.component.ts 
 ```
 import { Component, OnInit } from '@angular/core';
@@ -611,16 +636,85 @@ export class AuthComponent implements OnInit {
 }
 
 ```
-### ../../../app1201/frontend/src/app/profile/profile.component.ts 
+### ../../../app1201/frontend/src/app/auth/auth.module.ts 
+```
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RegisterComponent } from './register/register.component';
+import { LoginComponent } from './login/login.component';
+
+
+
+@NgModule({
+  declarations: [RegisterComponent, LoginComponent],
+  imports: [
+    CommonModule
+  ]
+})
+export class AuthModule { }
+
+```
+### ../../../app1201/frontend/src/app/auth/auth.guard.ts 
+```
+import { Injectable } from '@angular/core';
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+  canActivate(
+    next: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    return true;
+  }
+  
+}
+
+```
+### ../../../app1201/frontend/src/app/auth/auth.service.ts 
+```
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+
+  constructor() { }
+}
+
+```
+### ../../../app1201/frontend/src/app/auth/register/register.component.ts 
 ```
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-profile',
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.css']
+  selector: 'app-register',
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.css']
 })
-export class ProfileComponent implements OnInit {
+export class RegisterComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+}
+
+```
+### ../../../app1201/frontend/src/app/auth/login/login.component.ts 
+```
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit {
 
   constructor() { }
 

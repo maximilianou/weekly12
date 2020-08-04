@@ -23,6 +23,12 @@ ng8:
 	cd frontend && ng generate component header
 	cd frontend && ng generate component profile
 	cd frontend && ng generate component auth
+	cd frontend && ng generate module auth
+	cd frontend && ng generate service auth/auth
+	cd frontend && ng generate guard auth/auth
+	cd frontend && ng generate component auth/register
+	cd frontend && ng generate component auth/login
+
 ng9:
 	#cd frontend && npm install angular-in-memory-web-api --save
 	#cd frontend && ng generate service InMemoryData

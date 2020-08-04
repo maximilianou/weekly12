@@ -69,11 +69,32 @@ const filesIn = [
     mark: '\n```\n',
   },
   {
+    path: '../../../app1201/frontend/src/app/profile/profile.component.ts',
+    mark: '\n```\n',
+  },
+  {
     path: '../../../app1201/frontend/src/app/auth/auth.component.ts',
     mark: '\n```\n',
   },
   {
-    path: '../../../app1201/frontend/src/app/profile/profile.component.ts',
+    path: '../../../app1201/frontend/src/app/auth/auth.module.ts',
+    mark: '\n```\n',
+  },
+  {
+    path: '../../../app1201/frontend/src/app/auth/auth.service.ts',
+    mark: '\n```\n',
+  },
+  {
+    path: '../../../app1201/frontend/src/app/auth/auth.guard.ts',
+    mark: '\n```\n',
+  },
+  {
+    path:
+      '../../../app1201/frontend/src/app/auth/register/register.component.ts',
+    mark: '\n```\n',
+  },
+  {
+    path: '../../../app1201/frontend/src/app/auth/login/login.component.ts',
     mark: '\n```\n',
   },
 ];

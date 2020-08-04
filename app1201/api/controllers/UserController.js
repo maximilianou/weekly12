@@ -1,5 +1,7 @@
 // controllers/UserController.js
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const env = require('../config/environment');
 
 exports.register = function (req, res) {
   const { username, email, password, passwordConfirmation } = req.body;
@@ -28,4 +30,29 @@ exports.register = function (req, res) {
   });
 };
 
-exports.login = function (req, res) {};
+exports.login = function (req, res) {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(422).json({ error: 'Please provide email or password' });
+  }
+  User.findOne({ email }, (err, user) => {
+    if (err) {
+      return res.status(422).json({ error: 'Oops! Something went wrong' });
+    }
+    if (!user) {
+      return res.status(422).json({ error: 'Invalid User' });
+    }
+    if (user.hasSamePassword(password)) {
+      const jsonToken = jwt.sign(
+        {
+          userId: user.id,
+          username: user.username,
+        },
+        env.secret,
+        { expiresIn: '1,h' }
+      );
+      return res.json(jsonToke, n);
+    }
+    return res.status(422).json({ error: 'Wrong email or password' });
+  });
+};

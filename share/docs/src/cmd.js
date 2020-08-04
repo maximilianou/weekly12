@@ -52,6 +52,18 @@ const filesIn = [
     path: '../../../app1201/api/routes/UserRoute.js',
     mark: '\n```\n',
   },
+  {
+    path: '../../../app1201/frontend/src/app/home/home.component.ts',
+    mark: '\n```\n',
+  },
+  {
+    path: '../../../app1201/frontend/src/app/home/home.component.html',
+    mark: '\n```\n',
+  },
+  {
+    path: '../../../app1201/frontend/src/app/home/home.component.css',
+    mark: '\n```\n',
+  },
 ];
 const publish = (cmd) => {
   remove({ fileOut: cmd.fileOut });

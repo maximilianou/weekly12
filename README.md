@@ -1,3 +1,35 @@
+### ../../../app1201/Makefile 
+```
+ng1:
+	nvm install 14
+	nvm use 14
+	npm install -g npm@latest
+	npm install -g @angular/cli
+	ng new frontend
+ng2: 
+	cd frontend && ng serve
+ng3:
+	docker-compose -f docker-compose.dev.yml up	--build
+ng4:
+	docker-compose -f docker-compose.dev.yml down	
+ng5: 
+	docker system prune -a # delete all docker images in your computer
+ng6:
+	mkdir api
+	cd api && npm init -y
+	cd api && npm install nodemon --save-dev
+	cd api && npm install bcryptjs body-parser cors express jsonwebtoken mongoose validator --save	
+ng8:
+	#cd frontend && ng generate module app-routing --flat --module=app
+	cd frontend && ng generate component home
+ng9:
+	#cd frontend && npm install angular-in-memory-web-api --save
+	#cd frontend && ng generate service InMemoryData
+	#cd frontend && ng generate component dish-search
+
+
+
+```
 ### ../../../app1201/docker-compose.dev.yml 
 ```
 version: "3.8" # specify docker-compose version
@@ -30,7 +62,7 @@ services:
       - "5000:5000" #specify ports forewarding
     environment:
       - PORT=5000
-      - SECRET=Thisismysecret
+      - SECRET=Thisismysecretforjwt
       - NODE_ENV=development
       - MONGO_DB_USERNAME=admin-user
       - MONGO_DB_PASSWORD=admin-password
@@ -56,37 +88,6 @@ services:
       - ./mongo/db:/data/db
     ports:
       - "27017:27017" # specify port forewarding
-
-```
-### ../../../app1201/Makefile 
-```
-ng1:
-	nvm install 14
-	nvm use 14
-	npm install -g npm@latest
-	npm install -g @angular/cli
-	ng new frontend
-ng2: 
-	cd frontend && ng serve
-ng3:
-	docker-compose -f docker-compose.dev.yml up	--build
-ng4:
-	docker-compose -f docker-compose.dev.yml down	
-ng5: 
-	docker system prune -a # delete all docker images in your computer
-ng6:
-	mkdir api
-	cd api && npm init -y
-	cd api && npm install nodemon --save-dev
-	cd api && npm install bcryptjs body-parser cors express jsonwebtoken mongoose validator --save	
-ng8:
-	#cd frontend && ng generate module app-routing --flat --module=app
-ng9:
-	#cd frontend && npm install angular-in-memory-web-api --save
-	#cd frontend && ng generate service InMemoryData
-	#cd frontend && ng generate component dish-search
-
-
 
 ```
 ### ../../../app1201/frontend/Dockerfile.dev 
@@ -217,10 +218,12 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,
@@ -259,6 +262,11 @@ export class AppComponent {
   title = 'frontend';
 }
 
+```
+### ../../../app1201/frontend/src/app/app.component.html 
+```
+<h1>Angular </h1>
+<router-outlet></router-outlet>
 ```
 ### ../../../app1201/api/server.js 
 ```
@@ -306,11 +314,6 @@ app.listen(PORT, () => {
 });
 
 ```
-### ../../../app1201/frontend/src/app/app.component.html 
-```
-<h1>Angular </h1>
-<router-outlet></router-outlet>
-```
 ### ../../../app1201/api/config/environment.js 
 ```
 module.exports = {
@@ -335,7 +338,9 @@ module.exports = {
 ### ../../../app1201/api/controllers/UserController.js 
 ```
 // controllers/UserController.js
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const env = require('../config/environment');
 
 exports.register = function (req, res) {
   const { username, email, password, passwordConfirmation } = req.body;
@@ -364,7 +369,32 @@ exports.register = function (req, res) {
   });
 };
 
-exports.login = function (req, res) {};
+exports.login = function (req, res) {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(422).json({ error: 'Please provide email or password' });
+  }
+  User.findOne({ email }, (err, user) => {
+    if (err) {
+      return res.status(422).json({ error: 'Oops! Something went wrong' });
+    }
+    if (!user) {
+      return res.status(422).json({ error: 'Invalid User' });
+    }
+    if (user.hasSamePassword(password)) {
+      const jsonToken = jwt.sign(
+        {
+          userId: user.id,
+          username: user.username,
+        },
+        env.secret,
+        { expiresIn: '1,h' }
+      );
+      return res.json(jsonToke, n);
+    }
+    return res.status(422).json({ error: 'Wrong email or password' });
+  });
+};
 
 ```
 ### ../../../app1201/api/models/User.js 
@@ -424,6 +454,10 @@ userSchema.pre('save', function (next) {
   });
 });
 
+userSchema.methods.hasSamePassword = function (password) {
+  return bcrypt.compareSync(password, this.password);
+};
+
 module.exports = mongoose.model('User', userSchema);
 
 ```
@@ -444,4 +478,46 @@ router.get('/index', (req, res) => {
 
 module.exports = router;
 
+```
+### ../../../app1201/frontend/src/app/home/home.component.ts 
+```
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute} from '@angular/router';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
+})
+export class HomeComponent implements OnInit {
+
+  notify: string;
+
+  constructor(private router: Router, private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const key1 = 'loggedin';
+      if( params[key1] === 'success'){
+        this.notify = 'You have been successfully loggedin. Welcome Home';
+      }
+    });
+  }
+
+}
+
+```
+### ../../../app1201/frontend/src/app/home/home.component.html 
+```
+<div *ngIf="notify" class="alert alert-success container marge">
+    {{ notify }}
+</div>
+<p>home works!</p>
+
+```
+### ../../../app1201/frontend/src/app/home/home.component.css 
+```
+.marge{
+    margin-top: 1%;
+}
 ```

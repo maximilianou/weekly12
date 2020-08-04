@@ -1,3 +1,45 @@
+### ../../../app1201/Makefile 
+```
+ng1:
+	nvm install 14
+	nvm use 14
+	npm install -g npm@latest
+	npm install -g @angular/cli
+	ng new frontend
+ng2: 
+	cd frontend && ng serve
+ng3:
+	docker-compose -f docker-compose.dev.yml up	--build
+ng4:
+	docker-compose -f docker-compose.dev.yml down	
+ng5: 
+	docker system prune -a # delete all docker images in your computer
+ng6:
+	mkdir api
+	cd api && npm init -y
+	cd api && npm install nodemon --save-dev
+	cd api && npm install bcryptjs body-parser cors express jsonwebtoken mongoose validator --save	
+ng8:
+	#cd frontend && ng generate module app-routing --flat --module=app
+	cd frontend && ng generate component home
+	cd frontend && ng generate component header
+	cd frontend && ng generate component profile
+	cd frontend && ng generate component auth
+	cd frontend && ng generate module auth
+	cd frontend && ng generate service auth/auth
+	cd frontend && ng generate guard auth/auth
+	cd frontend && ng generate component auth/register
+	cd frontend && ng generate component auth/login
+	cd frontend && npm install bootstrap --save
+
+ng9:
+	#cd frontend && npm install angular-in-memory-web-api --save
+	#cd frontend && ng generate service InMemoryData
+	#cd frontend && ng generate component dish-search
+
+
+
+```
 ### ../../../app1201/docker-compose.dev.yml 
 ```
 version: "3.8" # specify docker-compose version
@@ -58,47 +100,6 @@ services:
       - "27017:27017" # specify port forewarding
 
 ```
-### ../../../app1201/Makefile 
-```
-ng1:
-	nvm install 14
-	nvm use 14
-	npm install -g npm@latest
-	npm install -g @angular/cli
-	ng new frontend
-ng2: 
-	cd frontend && ng serve
-ng3:
-	docker-compose -f docker-compose.dev.yml up	--build
-ng4:
-	docker-compose -f docker-compose.dev.yml down	
-ng5: 
-	docker system prune -a # delete all docker images in your computer
-ng6:
-	mkdir api
-	cd api && npm init -y
-	cd api && npm install nodemon --save-dev
-	cd api && npm install bcryptjs body-parser cors express jsonwebtoken mongoose validator --save	
-ng8:
-	#cd frontend && ng generate module app-routing --flat --module=app
-	cd frontend && ng generate component home
-	cd frontend && ng generate component header
-	cd frontend && ng generate component profile
-	cd frontend && ng generate component auth
-	cd frontend && ng generate module auth
-	cd frontend && ng generate service auth/auth
-	cd frontend && ng generate guard auth/auth
-	cd frontend && ng generate component auth/register
-	cd frontend && ng generate component auth/login
-
-ng9:
-	#cd frontend && npm install angular-in-memory-web-api --save
-	#cd frontend && ng generate service InMemoryData
-	#cd frontend && ng generate component dish-search
-
-
-
-```
 ### ../../../app1201/frontend/Dockerfile.dev 
 ```
 # Create image based off of the official 12.8-alpine
@@ -134,55 +135,6 @@ EXPOSE 5000
 # Serve the app
 CMD [ "npm", "run", "dev-server" ]
 
-```
-### ../../../app1201/frontend/package.json 
-```
-{
-  "name": "frontend",
-  "version": "0.0.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve --disableHostCheck=true --host=0.0.0.0 ",
-    "build": "ng build",
-    "test": "ng test",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
-  },
-  "private": true,
-  "dependencies": {
-    "@angular/animations": "~10.0.5",
-    "@angular/common": "~10.0.5",
-    "@angular/compiler": "~10.0.5",
-    "@angular/core": "~10.0.5",
-    "@angular/forms": "~10.0.5",
-    "@angular/platform-browser": "~10.0.5",
-    "@angular/platform-browser-dynamic": "~10.0.5",
-    "@angular/router": "~10.0.5",
-    "rxjs": "~6.5.5",
-    "tslib": "^2.0.0",
-    "zone.js": "~0.10.3"
-  },
-  "devDependencies": {
-    "@angular-devkit/build-angular": "~0.1000.4",
-    "@angular/cli": "~10.0.4",
-    "@angular/compiler-cli": "~10.0.5",
-    "@types/node": "^12.11.1",
-    "@types/jasmine": "~3.5.0",
-    "@types/jasminewd2": "~2.0.3",
-    "codelyzer": "^6.0.0",
-    "jasmine-core": "~3.5.0",
-    "jasmine-spec-reporter": "~5.0.0",
-    "karma": "~5.0.0",
-    "karma-chrome-launcher": "~3.1.0",
-    "karma-coverage-istanbul-reporter": "~3.0.2",
-    "karma-jasmine": "~3.3.0",
-    "karma-jasmine-html-reporter": "^1.5.0",
-    "protractor": "~7.0.0",
-    "ts-node": "~8.3.0",
-    "tslint": "~6.1.0",
-    "typescript": "~3.9.5"
-  }
-}
 ```
 ### ../../../app1201/api/package.json 
 ```
@@ -220,6 +172,57 @@ CMD [ "npm", "run", "dev-server" ]
 }
 
 ```
+### ../../../app1201/frontend/package.json 
+```
+{
+  "name": "frontend",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --disableHostCheck=true --host=0.0.0.0 ",
+    "build": "ng build",
+    "test": "ng test",
+    "lint": "ng lint",
+    "e2e": "ng e2e"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "~10.0.5",
+    "@angular/common": "~10.0.5",
+    "@angular/compiler": "~10.0.5",
+    "@angular/core": "~10.0.5",
+    "@angular/forms": "~10.0.5",
+    "@angular/platform-browser": "~10.0.5",
+    "@angular/platform-browser-dynamic": "~10.0.5",
+    "@angular/router": "~10.0.5",
+    "bootstrap": "^4.5.0",
+    "rxjs": "~6.5.5",
+    "tslib": "^2.0.0",
+    "zone.js": "~0.10.3"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "~0.1000.4",
+    "@angular/cli": "~10.0.4",
+    "@angular/compiler-cli": "~10.0.5",
+    "@types/node": "^12.11.1",
+    "@types/jasmine": "~3.5.0",
+    "@types/jasminewd2": "~2.0.3",
+    "codelyzer": "^6.0.0",
+    "jasmine-core": "~3.5.0",
+    "jasmine-spec-reporter": "~5.0.0",
+    "karma": "~5.0.0",
+    "karma-chrome-launcher": "~3.1.0",
+    "karma-coverage-istanbul-reporter": "~3.0.2",
+    "karma-jasmine": "~3.3.0",
+    "karma-jasmine-html-reporter": "^1.5.0",
+    "protractor": "~7.0.0",
+    "ts-node": "~8.3.0",
+    "tslint": "~6.1.0",
+    "typescript": "~3.9.5"
+  }
+}
+
+```
 ### ../../../app1201/frontend/src/app/app.module.ts 
 ```
 import { BrowserModule } from '@angular/platform-browser';
@@ -230,7 +233,8 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { ProfileComponent } from './profile/profile.component';
 import { HeaderComponent } from './header/header.component';
-import { AuthComponent } from './auth/auth.component';
+
+import { AuthModule } from './auth/auth.module';
 
 @NgModule({
   declarations: [
@@ -238,11 +242,11 @@ import { AuthComponent } from './auth/auth.component';
     HomeComponent,
     ProfileComponent,
     HeaderComponent,
-    AuthComponent
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    AuthModule
   ],
   providers: [],
   bootstrap: [AppComponent]
@@ -277,11 +281,6 @@ export class AppComponent {
   title = 'frontend';
 }
 
-```
-### ../../../app1201/frontend/src/app/app.component.html 
-```
-<h1>Angular </h1>
-<router-outlet></router-outlet>
 ```
 ### ../../../app1201/api/server.js 
 ```
@@ -327,6 +326,13 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
 });
+
+```
+### ../../../app1201/frontend/src/app/app.component.html 
+```
+<div>
+    <app-header></app-header>
+</div>
 
 ```
 ### ../../../app1201/api/config/environment.js 
@@ -598,6 +604,31 @@ export class HeaderComponent implements OnInit {
 }
 
 ```
+### ../../../app1201/frontend/src/app/header/header.component.html 
+```
+<nav class="navbar navbar-light navbar-extend-lg" style="background-color: #e3f2fd;">
+    <div class="container">
+        <a routerLink="/" class="navbar-brand" routerLinkActive="active">AppDividend</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav m1-auto">
+                <ng-container>
+                    <li class="nav-item">
+                        <a routerLink="/" class="nav-link" routerLinkActive="active">
+                            Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a routerLink="/" class="nav-link">
+                            Register
+                        </a>
+                    </li>
+                </ng-container>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+```
 ### ../../../app1201/frontend/src/app/profile/profile.component.ts 
 ```
 import { Component, OnInit } from '@angular/core';
@@ -640,18 +671,42 @@ export class AuthComponent implements OnInit {
 ```
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
+import { AuthComponent } from './auth.component';
 import { RegisterComponent } from './register/register.component';
 import { LoginComponent } from './login/login.component';
 
-
+import { AuthService } from './auth.service';
+import { AuthGuard } from './auth.guard';
 
 @NgModule({
-  declarations: [RegisterComponent, LoginComponent],
+  declarations: [
+    RegisterComponent, 
+    LoginComponent,
+    AuthComponent
+  ],
   imports: [
     CommonModule
+  ],
+  providers: [
+    AuthService,
+    AuthGuard
   ]
 })
 export class AuthModule { }
+
+```
+### ../../../app1201/frontend/src/app/auth/auth.service.ts 
+```
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+
+  constructor() { }
+}
 
 ```
 ### ../../../app1201/frontend/src/app/auth/auth.guard.ts 
@@ -670,19 +725,6 @@ export class AuthGuard implements CanActivate {
     return true;
   }
   
-}
-
-```
-### ../../../app1201/frontend/src/app/auth/auth.service.ts 
-```
-import { Injectable } from '@angular/core';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthService {
-
-  constructor() { }
 }
 
 ```

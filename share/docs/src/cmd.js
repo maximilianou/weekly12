@@ -69,6 +69,10 @@ const filesIn = [
     mark: '\n```\n',
   },
   {
+    path: '../../../app1201/frontend/src/app/header/header.component.html',
+    mark: '\n```\n',
+  },
+  {
     path: '../../../app1201/frontend/src/app/profile/profile.component.ts',
     mark: '\n```\n',
   },

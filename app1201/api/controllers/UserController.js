@@ -4,7 +4,9 @@ const User = require('../models/User');
 const env = require('../config/environment');
 
 exports.register = function (req, res) {
-  const { username, email, password, passwordConfirmation } = req.body;
+  const {
+    username, email, password, passwordConfirmation,
+  } = req.body;
   if (!email || !password) {
     return res.status(422).json({ error: 'Please provide email or password' });
   }
@@ -49,10 +51,45 @@ exports.login = function (req, res) {
           username: user.username,
         },
         env.secret,
-        { expiresIn: '1,h' }
+        { expiresIn: '1,h' },
       );
       return res.json(jsonToke, n);
     }
     return res.status(422).json({ error: 'Wrong email or password' });
   });
 };
+
+exports.authMiddleware = function (req, res, next) {
+  const jsonToken = req.headers.authorization;
+  try {
+    if (jsonToken) {
+      const user = parseToken(jsonToken);
+      User.findById(user.userId, (err, user) => {
+        if (err) {
+          return res.status(422).json({
+            error: 'Opps!, Something went Wrong!!',
+          });
+        }
+        if (user) {
+          res.locals.user = user;
+          next();
+        } else {
+          return res.status(422).json({
+            error: 'Not authorized User.',
+          });
+        }
+      });
+    } else {
+      return res.status(422).json({ error: 'Not authorized user' });
+    }
+  } catch (err) {
+    res.status(403).json({
+      success: false,
+      message: err,
+    });
+  }
+};
+
+function parseToken(token) {
+  return jwt.verify(token.split(' ')[1], env.secret);
+}

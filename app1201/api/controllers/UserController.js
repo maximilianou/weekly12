@@ -53,7 +53,7 @@ exports.login = function (req, res) {
         env.secret,
         { expiresIn: '1,h' },
       );
-      return res.json(jsonToke, n);
+      return res.json(jsonToken);
     }
     return res.status(422).json({ error: 'Wrong email or password' });
   });

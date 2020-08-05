@@ -29,6 +29,8 @@ ng8:
 	cd frontend && ng generate component auth/register
 	cd frontend && ng generate component auth/login
 	cd frontend && npm install bootstrap --save
+	cd frontend && npm install @auth0/angular-jwt --save
+	cd frontend && npm install moment --save
 
 ng9:
 	#cd frontend && npm install angular-in-memory-web-api --save

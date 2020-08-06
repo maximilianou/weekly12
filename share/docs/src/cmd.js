@@ -4,7 +4,7 @@ console.log('createing README.md');
 
 const fileOut = '../../../README.md';
 const filesIn = [
-  { path: '../../../Do.md', mark: '\n\n' },
+  { path: '../../../Do.md', mark: '\n' },
   { path: '../../../app1201/Makefile', mark: '\n```\n' },
   { path: '../../../app1201/docker-compose.dev.yml', mark: '\n```\n' },
   { path: '../../../app1201/frontend/Dockerfile.dev', mark: '\n```\n' },

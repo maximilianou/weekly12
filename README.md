@@ -31,6 +31,8 @@ ng8:
 	cd frontend && ng generate component auth/register
 	cd frontend && ng generate component auth/login
 	cd frontend && npm install bootstrap --save
+	cd frontend && npm install @auth0/angular-jwt --save
+	cd frontend && npm install moment --save
 
 ng9:
 	#cd frontend && npm install angular-in-memory-web-api --save
@@ -40,30 +42,13 @@ ng9:
 
 
 ```
-### ../../../app1201/frontend/Dockerfile.dev 
-```
-# Create image based off of the official 12.8-alpine
-FROM node:14-alpine
-# disabling ssl for npm for Dev or if you are behind proxy
-RUN npm set strict-ssl false
-#RUN echo "nameserver 8.8.8.8" |  tee /etc/resolv.conf > /dev/null
-WORKDIR /frontend
-# Copy dependency definitions
-COPY package.json ./
-## installing and Storing node modules on a separate layer will prevent unnecessary npm installs at each build
-RUN npm i
-COPY . .
-EXPOSE 4200 49153
-CMD ["npm", "start"]
-
-```
 ### ../../../app1201/docker-compose.dev.yml 
 ```
 version: "3.8" # specify docker-compose version
 
 # Define the services/containers to be run
 services:
-  angular: # name of the first service
+  cook1201_angular: # name of the first service
     build: # specify the directory of the Dockerfile
       context: ./frontend
       dockerfile: Dockerfile.dev
@@ -77,7 +62,7 @@ services:
     environment:
       - NODE_ENV=dev
 
-  express: #name of the second service
+  cook1201_express: #name of the second service
     build: # specify the directory of the Dockerfile
       context: ./api
       dockerfile: Dockerfile.dev
@@ -116,24 +101,32 @@ services:
     ports:
       - "27017:27017" # specify port forewarding
 
+  cook1201_nginx: #name of the fourth service
+    build: loadbalancer # specify the directory of the Dockerfile
+    container_name: cook1201_nginx
+    ports:
+      - "8046:80" #specify ports forewarding
+    links:
+      - cook1201_express
+      - cook1201_angular
+
+
 ```
-### ../../../app1201/api/Dockerfile.dev 
+### ../../../app1201/frontend/Dockerfile.dev 
 ```
 # Create image based off of the official 12.8-alpine
 FROM node:14-alpine
 # disabling ssl for npm for Dev or if you are behind proxy
 RUN npm set strict-ssl false
-# Change directory so that our commands run inside this new directory
-WORKDIR /api
+#RUN echo "nameserver 8.8.8.8" |  tee /etc/resolv.conf > /dev/null
+WORKDIR /frontend
 # Copy dependency definitions
 COPY package.json ./
-## installing node modules
+## installing and Storing node modules on a separate layer will prevent unnecessary npm installs at each build
 RUN npm i
 COPY . .
-# Expose the port the app runs in
-EXPOSE 5000
-# Serve the app
-CMD [ "npm", "run", "dev-server" ]
+EXPOSE 4200 49153
+CMD ["npm", "start"]
 
 ```
 ### ../../../app1201/frontend/package.json 
@@ -144,6 +137,7 @@ CMD [ "npm", "run", "dev-server" ]
   "scripts": {
     "ng": "ng",
     "start": "ng serve --disableHostCheck=true --host=0.0.0.0 ",
+    "serve": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
@@ -159,7 +153,9 @@ CMD [ "npm", "run", "dev-server" ]
     "@angular/platform-browser": "~10.0.5",
     "@angular/platform-browser-dynamic": "~10.0.5",
     "@angular/router": "~10.0.5",
+    "@auth0/angular-jwt": "^5.0.1",
     "bootstrap": "^4.5.0",
+    "moment": "^2.27.0",
     "rxjs": "~6.5.5",
     "tslib": "^2.0.0",
     "zone.js": "~0.10.3"
@@ -185,6 +181,25 @@ CMD [ "npm", "run", "dev-server" ]
     "typescript": "~3.9.5"
   }
 }
+
+```
+### ../../../app1201/api/Dockerfile.dev 
+```
+# Create image based off of the official 12.8-alpine
+FROM node:14-alpine
+# disabling ssl for npm for Dev or if you are behind proxy
+RUN npm set strict-ssl false
+# Change directory so that our commands run inside this new directory
+WORKDIR /api
+# Copy dependency definitions
+COPY package.json ./
+## installing node modules
+RUN npm i
+COPY . .
+# Expose the port the app runs in
+EXPOSE 5000
+# Serve the app
+CMD [ "npm", "run", "dev-server" ]
 
 ```
 ### ../../../app1201/api/package.json 
@@ -262,17 +277,28 @@ import { Routes, RouterModule } from '@angular/router';
 import { ProfileComponent } from './profile/profile.component';
 import { HomeComponent } from './home/home.component';
 
+import { AuthGuard } from './auth/auth.guard';
+
 const routes: Routes = [
   { path: '', component: HomeComponent },
-  { path: 'profile', component: ProfileComponent }
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] }
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
+  providers: [AuthGuard]
 })
 
 export class AppRoutingModule { }
+
+```
+### ../../../app1201/frontend/src/app/app.component.html 
+```
+<div>
+    <app-header></app-header>
+    <router-outlet></router-outlet>
+</div>
 
 ```
 ### ../../../app1201/frontend/src/app/app.component.ts 
@@ -287,35 +313,6 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'frontend';
 }
-
-```
-### ../../../app1201/frontend/src/app/app.component.html 
-```
-<div>
-    <app-header></app-header>
-    <router-outlet></router-outlet>
-</div>
-
-```
-### ../../../app1201/api/config/environment.js 
-```
-module.exports = {
-  mongodb: {
-    uri:
-      `mongodb://${
-        process.env.MONGO_DB_USERNAME
-      }:${
-        process.env.MONGO_DB_PASSWORD
-      }@${
-        process.env.MONGO_DB_HOST
-      }${process.env.MONGO_DB_PORT
-        ? `:${process.env.MONGO_DB_PORT}/`
-        : '/'
-      }${process.env.MONGO_DB_DATABASE
-      }${process.env.MONGO_DB_PARAMETERS}`,
-  },
-  secret: process.env.SECRET,
-};
 
 ```
 ### ../../../app1201/api/server.js 
@@ -364,6 +361,27 @@ app.listen(PORT, () => {
 });
 
 ```
+### ../../../app1201/api/config/environment.js 
+```
+module.exports = {
+  mongodb: {
+    uri:
+      `mongodb://${
+        process.env.MONGO_DB_USERNAME
+      }:${
+        process.env.MONGO_DB_PASSWORD
+      }@${
+        process.env.MONGO_DB_HOST
+      }${process.env.MONGO_DB_PORT
+        ? `:${process.env.MONGO_DB_PORT}/`
+        : '/'
+      }${process.env.MONGO_DB_DATABASE
+      }${process.env.MONGO_DB_PARAMETERS}`,
+  },
+  secret: process.env.SECRET,
+};
+
+```
 ### ../../../app1201/api/controllers/UserController.js 
 ```
 // controllers/UserController.js
@@ -372,9 +390,7 @@ const User = require('../models/User');
 const env = require('../config/environment');
 
 exports.register = function (req, res) {
-  const {
-    username, email, password, passwordConfirmation,
-  } = req.body;
+  const { username, email, password, passwordConfirmation } = req.body;
   if (!email || !password) {
     return res.status(422).json({ error: 'Please provide email or password' });
   }
@@ -392,7 +408,9 @@ exports.register = function (req, res) {
     });
     user.save((err) => {
       if (err) {
-        res.status(422).json({ error: 'Ooops! something went wrong' });
+        res
+          .status(422)
+          .json({ error: `Ooops! something went wrong! ${err}::${user}` });
       } else {
         return res.status(200).json({ registered: true });
       }
@@ -419,9 +437,9 @@ exports.login = function (req, res) {
           username: user.username,
         },
         env.secret,
-        { expiresIn: '1,h' },
+        { expiresIn: '1,h' }
       );
-      return res.json(jsonToke, n);
+      return res.json(jsonToken);
     }
     return res.status(422).json({ error: 'Wrong email or password' });
   });
@@ -468,7 +486,6 @@ function parseToken(token) {
 // models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { restart } = require('nodemon');
 
 const { Schema } = mongoose;
 
@@ -596,6 +613,8 @@ export class HomeComponent implements OnInit {
 ### ../../../app1201/frontend/src/app/header/header.component.ts 
 ```
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from './../auth/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -604,37 +623,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HeaderComponent implements OnInit {
 
-  constructor() { }
+  constructor(public auth: AuthService, private router: Router) { }
 
   ngOnInit(): void {
   }
 
-}
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/auth/login'], {queryParams: {loggedOut: 'success'}});
+  }
 
-```
-### ../../../app1201/frontend/src/app/header/header.component.html 
-```
-<nav class="navbar navbar-light navbar-extend-lg" style="background-color: #e3f2fd;">
-    <div class="container">
-        <a routerLink="/" class="navbar-brand" routerLinkActive="active">AppDividend</a>
-        <div class="" id="navbarSupportedContent">
-            <ul class="navbar-nav ml-auto">
-                <ng-container>
-                    <li class="nav-item">
-                        <a routerLink="/auth/login" class="nav-link" routerLinkActive="active">
-                            Login
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a routerLink="/auth/register" class="nav-link">
-                            Register
-                        </a>
-                    </li>
-                </ng-container>
-            </ul>
-        </div>
-    </div>
-</nav>
+
+}
 
 ```
 ### ../../../app1201/frontend/src/app/profile/profile.component.ts 
@@ -654,6 +654,43 @@ export class ProfileComponent implements OnInit {
   }
 
 }
+
+```
+### ../../../app1201/frontend/src/app/header/header.component.html 
+```
+<nav class="navbar navbar-light navbar-extend-lg" style="background-color: #e3f2fd;">
+    <div class="container">
+        <a routerLink="/" class="navbar-brand" routerLinkActive="active">AppDividend</a>
+        <div class="" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+                <ng-container *ngIf="!auth.isAuthenticated()">
+                    <li class="nav-item">
+                        <a routerLink="/auth/login" class="nav-link" routerLinkActive="active">
+                            Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a routerLink="/auth/register" class="nav-link">
+                            Register
+                        </a>
+                    </li>
+                </ng-container>
+                <ng-container *ngIf="auth.isAuthenticated()">
+                    <li class="nav-item">
+                        <a class="nav-link " >
+                            {{ auth.getUsername() }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pointer" (click)="logout()">
+                            Logout
+                        </a>
+                    </li>
+                </ng-container>
+            </ul>
+        </div>
+    </div>
+</nav>
 
 ```
 ### ../../../app1201/frontend/src/app/auth/auth.component.ts 
@@ -680,6 +717,8 @@ export class AuthComponent implements OnInit {
 import { Routes, RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 
 import { AuthComponent } from './auth.component';
 import { RegisterComponent } from './register/register.component';
@@ -692,8 +731,8 @@ const routes: Routes = [
   { path: 'auth',
     component: AuthComponent,
     children: [
-      { path: 'login', component: LoginComponent },
-      { path: 'register', component: RegisterComponent }
+      { path: 'login', component: LoginComponent, canActivate: [AuthGuard] },
+      { path: 'register', component: RegisterComponent, canActivate: [AuthGuard] }
     ]
   }
 ];
@@ -702,9 +741,14 @@ const routes: Routes = [
   declarations: [
     RegisterComponent, 
     LoginComponent,
+    AuthComponent
   ],
   imports: [
-    CommonModule
+    RouterModule.forChild(routes),
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpClientModule,
   ],
   exports: [RouterModule],
   providers: [
@@ -718,19 +762,123 @@ export class AuthModule { }
 ### ../../../app1201/frontend/src/app/auth/auth.service.ts 
 ```
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import * as moment from 'moment';
+
+const jwt = new JwtHelperService();
+
+class DecodedToken {
+  exp: number;
+  username: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  constructor() { }
+  private uriseg = 'http://localhost:5000/api/users';
+  private decodedToken;
+
+  constructor(private http: HttpClient) { 
+    this.decodedToken = JSON.parse( localStorage.getItem('auth_meta') ) || new DecodedToken();
+  }
+
+  public register(userData: any): Observable<any>{
+    const URI = this.uriseg + '/register';
+    return this.http.post(URI, userData);
+  }
+
+  public login(userData: any): Observable<any>{
+    const URI = this.uriseg + '/login';
+    return this.http.post(URI, userData)
+    .pipe(
+      map( (token) => {
+        return this.saveToken(token);
+      })
+    );
+  }
+  private saveToken(token: any): any{
+    this.decodedToken = jwt.decodeToken(token);
+    localStorage.setItem('auth_tkn', token);
+    localStorage.setItem('auth_meta', JSON.stringify(this.decodedToken));
+    return token;
+  }
+  public logout(): void {
+    localStorage.removeItem('auth_tkn');
+    localStorage.removeItem('auth_meta');
+    this.decodedToken = new DecodedToken();
+  }
+  public isAuthenticated(): boolean {
+    console.log(this.decodedToken.exp);
+    return moment().isBefore(moment.unix(this.decodedToken.exp));
+  }
+  public getUsername(): string{
+    return this.decodedToken.username;
+  }
+}
+
+
+
+
+```
+### ../../../app1201/frontend/src/app/auth/auth.guard.ts 
+```
+import { Injectable } from '@angular/core';
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
+import { AuthService } from './auth.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+  private url: string;
+  constructor(private auth: AuthService, private router: Router){}
+
+  private authState(): boolean {
+    if(this.isLoginOrRegister()){
+      this.router.navigate(['/']);
+      return false;
+    }
+    return true;
+  }
+  private notAuthState(): boolean {
+    if( this.isLoginOrRegister() ){
+      return true;
+    }
+    this.router.navigate(['/auth/login']);
+    return false;
+  }
+  private isLoginOrRegister(): boolean{
+    if(this.url.includes('/auth/login') || this.url.includes('/auth/register')){
+
+      return true;
+    }
+    return false;
+  }
+  canActivate(
+    next: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+      this.url = state.url;
+      if(this.auth.isAuthenticated()){
+        return this.authState();
+      }
+      return this.notAuthState();
+  }
+  
 }
 
 ```
 ### ../../../app1201/frontend/src/app/auth/register/register.component.ts 
 ```
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from './../auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -739,36 +887,118 @@ import { Component, OnInit } from '@angular/core';
 })
 export class RegisterComponent implements OnInit {
 
-  constructor() { }
+  formData: any = {};
+  errors: any = [];
+
+  constructor(private auth: AuthService, private router: Router) { }
 
   ngOnInit(): void {
   }
-
-}
-
-```
-### ../../../app1201/frontend/src/app/auth/auth.guard.ts 
-```
-import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
-  canActivate(
-    next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    return true;
+  register(): void {
+    this.errors = [];
+    this.auth.register(this.formData).subscribe(
+      () => { 
+        this.router.navigate(['/auth/login'], { queryParams: {registered: 'success'}});
+      },
+      (errorResponse) => {
+        this.errors.push(errorResponse.error.error);
+      }
+    );
   }
-  
 }
+
+```
+### ../../../app1201/frontend/src/app/auth/register/register.component.html 
+```
+<div class="container">
+    <div class="row">
+        <div class="col-md-5">
+            <h1 class="page-title">User Registration</h1>
+            <form #registerForm="ngForm">
+                <div class="form-group">
+                  <div *ngIf="errors.length > 0" class="alert alert-danger">
+                    <ul *ngFor="let error of errors">
+                        <li>{{error}}</li>
+                    </ul>
+                  </div>
+                <label for="username">Username</label>
+                <input type="text"
+                        class="form-control"
+                        [(ngModel)]="formData.username"
+                        name="username"
+                        #username="ngModel" required />
+                </div>
+                <div *ngIf="username.invalid && (username.dirty || username.touched)"
+                     class="alert alert-danger">
+                     <div *ngIf="username.errors.required">
+                        Username is Required!
+                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control"
+                        [(ngModel)]="formData.email" name="email"
+                        #email="ngModel" required />
+                </div>
+                <div *ngIf="email.invalid && ( email.dirty || email.touched)"
+                    class="alert alert-danger">
+                    <div *ngIf="email.errors.required">
+                        Email is Required!
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control"
+                        [(ngModel)]="formData.password" 
+                        #password="ngModel"
+                        name="password" required
+                    />
+                </div>
+                <div *ngIf="password.invalid && (password.dirty || password.touched)"
+                    class="alert alert-danger">
+                    <div *ngIf="password.errors.required">
+                        Password is Required!
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="passwordConfirmation">PasswordConfirmation</label>
+                    <input type="password" class="form-control"
+                        [(ngModel)]="formData.passwordConfirmation" 
+                        #passwordConfirmation="ngModel"
+                        name="passwordConfirmation" required
+                    />
+                </div>
+                <div *ngIf="passwordConfirmation.invalid && (passwordConfirmation.dirty || passwordConfirmation.touched)"
+                    class="alert alert-danger">
+                    <div *ngIf="passwordConfirmation.errors.required">
+                        Confirmation Password is Required!
+                    </div>
+                </div>
+
+                <button (click)="register()"
+                type="submit"
+                class="btn btn-warning"
+                [disabled]="!registerForm.form.valid">
+                    Register
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+</div>
 
 ```
 ### ../../../app1201/frontend/src/app/auth/login/login.component.ts 
 ```
 import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from './../auth.service';
+import { VirtualTimeScheduler } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -777,11 +1007,106 @@ import { Component, OnInit } from '@angular/core';
 })
 export class LoginComponent implements OnInit {
 
-  constructor() { }
+  loginForm: FormGroup;
+  errors: any = [];
+  notify: string;
+
+  constructor(
+    private auth: AuthService, 
+    private router: Router, 
+    private fb: FormBuilder,
+    private route: ActivatedRoute) { }
 
   ngOnInit(): void {
+    this.initForm();
+    this.route.queryParamMap.subscribe(
+      (params) => {
+        const key1 = 'registered';
+        const key2 = 'loggedOut';
+        if(params[key1] === 'success'){
+          this.notify = 'You have been successfully registered. Please Log in';
+        }
+        if(params[key2] === 'success'){
+          this.notify = 'You have been logged out successfully';
+        }
+      }
+    );
+  }
+  initForm(): void{
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, 
+        Validators.pattern(
+          '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$')]],
+      password: ['', Validators.required],
+    });
   }
 
+  isValidInput(fieldName): boolean {
+    return this.loginForm.controls[fieldName].invalid &&
+    (this.loginForm.controls[fieldName].dirty 
+      || this.loginForm.controls[fieldName].touched)
+  }
+
+  login(): void {
+    this.errors = [];
+    this.auth.login(this.loginForm.value)
+      .subscribe(
+        (token) => { 
+          this.router.navigate(['/'],{queryParams: {loggedin:'success'}});
+      },
+        (errorResponse) => {
+          this.errors.push(errorResponse.error.error);
+        }
+      );
+  }
 }
 
+```
+### ../../../app1201/frontend/src/app/auth/login/login.component.html 
+```
+<div class='container'>
+    <div class='row'>
+        <div class='col-md-5'>
+            <h1 class='page-title'>Login</h1>
+            <form [formGroup]='loginForm' (ngSubmit)="login()">
+                <div class="form-group">
+                    <div *ngIf='notify' class='alert alert-success'>
+                        {{notify}}
+                    </div>
+                    <div *ngIf='errors.length > 0' class='alert alert-danger'>
+                        <p>
+                        {{error}}
+                        </p>
+                    </div>
+                    <label for='email'>Email</label>
+                    <input type='email' class='form-control'
+                        formControlName="email" />
+                </div>
+                <div *ngIf="isValidInput('email')" class='alert alert-danger'>
+                    <div *ngIf="loginForm.controls['email'].errors.required">
+                        Email is required!
+                    </div>
+                    <div *ngIf="loginForm.controls['email'].errors.pattern">
+                        Must be a valid email format!
+                    </div>
+                </div>
+
+                <div class='form-group'>
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control"
+                        formControlName="password" />
+                </div>
+                <div *ngIf="isValidInput('password')" class="alert alert-danger">
+                    <div *ngIf="loginForm.controls['password'].errors.required">
+                        Password is required!
+                    </div>
+                </div>
+                <button [disabled]="!loginForm.valid"
+                type="submit" class="btn btn-warning">
+                Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
 ```

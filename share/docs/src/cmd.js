@@ -98,7 +98,16 @@ const filesIn = [
     mark: '\n```\n',
   },
   {
+    path:
+      '../../../app1201/frontend/src/app/auth/register/register.component.html',
+    mark: '\n```\n',
+  },
+  {
     path: '../../../app1201/frontend/src/app/auth/login/login.component.ts',
+    mark: '\n```\n',
+  },
+  {
+    path: '../../../app1201/frontend/src/app/auth/login/login.component.html',
     mark: '\n```\n',
   },
 ];

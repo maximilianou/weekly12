@@ -42,6 +42,32 @@ ng9:
 
 
 ```
+### ../../../Do.md 
+
+--------
+
+# Development Environment
+
+Here we have a starting point to use a development environment
+
+### Tools:
+
+docker-compose ( orchestation )
+
+docker ( containers )
+
+express ( api - backend )
+
+angular ( frontend )
+
+mongo ( database )
+
+nginx ( proxy url, loadbalancer )
+
+--------
+
+
+
 ### ../../../app1201/docker-compose.dev.yml 
 ```
 version: "3.8" # specify docker-compose version
@@ -129,6 +155,25 @@ EXPOSE 4200 49153
 CMD ["npm", "start"]
 
 ```
+### ../../../app1201/api/Dockerfile.dev 
+```
+# Create image based off of the official 12.8-alpine
+FROM node:14-alpine
+# disabling ssl for npm for Dev or if you are behind proxy
+RUN npm set strict-ssl false
+# Change directory so that our commands run inside this new directory
+WORKDIR /api
+# Copy dependency definitions
+COPY package.json ./
+## installing node modules
+RUN npm i
+COPY . .
+# Expose the port the app runs in
+EXPOSE 5000
+# Serve the app
+CMD [ "npm", "run", "dev-server" ]
+
+```
 ### ../../../app1201/frontend/package.json 
 ```
 {
@@ -181,25 +226,6 @@ CMD ["npm", "start"]
     "typescript": "~3.9.5"
   }
 }
-
-```
-### ../../../app1201/api/Dockerfile.dev 
-```
-# Create image based off of the official 12.8-alpine
-FROM node:14-alpine
-# disabling ssl for npm for Dev or if you are behind proxy
-RUN npm set strict-ssl false
-# Change directory so that our commands run inside this new directory
-WORKDIR /api
-# Copy dependency definitions
-COPY package.json ./
-## installing node modules
-RUN npm i
-COPY . .
-# Expose the port the app runs in
-EXPOSE 5000
-# Serve the app
-CMD [ "npm", "run", "dev-server" ]
 
 ```
 ### ../../../app1201/api/package.json 
@@ -293,14 +319,6 @@ const routes: Routes = [
 export class AppRoutingModule { }
 
 ```
-### ../../../app1201/frontend/src/app/app.component.html 
-```
-<div>
-    <app-header></app-header>
-    <router-outlet></router-outlet>
-</div>
-
-```
 ### ../../../app1201/frontend/src/app/app.component.ts 
 ```
 import { Component } from '@angular/core';
@@ -313,6 +331,14 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'frontend';
 }
+
+```
+### ../../../app1201/frontend/src/app/app.component.html 
+```
+<div>
+    <app-header></app-header>
+    <router-outlet></router-outlet>
+</div>
 
 ```
 ### ../../../app1201/api/server.js 
@@ -637,25 +663,6 @@ export class HeaderComponent implements OnInit {
 }
 
 ```
-### ../../../app1201/frontend/src/app/profile/profile.component.ts 
-```
-import { Component, OnInit } from '@angular/core';
-
-@Component({
-  selector: 'app-profile',
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.css']
-})
-export class ProfileComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
-}
-
-```
 ### ../../../app1201/frontend/src/app/header/header.component.html 
 ```
 <nav class="navbar navbar-light navbar-extend-lg" style="background-color: #e3f2fd;">
@@ -691,6 +698,25 @@ export class ProfileComponent implements OnInit {
         </div>
     </div>
 </nav>
+
+```
+### ../../../app1201/frontend/src/app/profile/profile.component.ts 
+```
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.css']
+})
+export class ProfileComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+}
 
 ```
 ### ../../../app1201/frontend/src/app/auth/auth.component.ts 

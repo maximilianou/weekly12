@@ -4,9 +4,7 @@ const User = require('../models/User');
 const env = require('../config/environment');
 
 exports.register = function (req, res) {
-  const {
-    username, email, password, passwordConfirmation,
-  } = req.body;
+  const { username, email, password, passwordConfirmation } = req.body;
   if (!email || !password) {
     return res.status(422).json({ error: 'Please provide email or password' });
   }
@@ -24,7 +22,9 @@ exports.register = function (req, res) {
     });
     user.save((err) => {
       if (err) {
-        res.status(422).json({ error: 'Ooops! something went wrong' });
+        res
+          .status(422)
+          .json({ error: `Ooops! something went wrong! ${err}::${user}` });
       } else {
         return res.status(200).json({ registered: true });
       }
@@ -51,7 +51,7 @@ exports.login = function (req, res) {
           username: user.username,
         },
         env.secret,
-        { expiresIn: '1,h' },
+        { expiresIn: '1,h' }
       );
       return res.json(jsonToken);
     }

@@ -24,7 +24,7 @@ exports.register = function (req, res) {
       if (err) {
         res
           .status(422)
-          .json({ error: `Ooops! something went wrong! ${err}::${user}` });
+          .json({ error: `Ooops!!! something went wrong!!! ${err}::${user}` });
       } else {
         return res.status(200).json({ registered: true });
       }

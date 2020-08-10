@@ -1,3 +1,8 @@
+start: ng3
+
+stop: ng4
+
+install: ng1
 ng1:
 	nvm install 14
 	nvm use 14

@@ -1,29 +1,10 @@
-### ../../../Do.md 
---------
-
-# Development Environment
-
-Here we have a starting point to use a development environment
-
-### Tools:
-
-docker-compose ( orchestation )
-
-docker ( containers )
-
-express ( api - backend )
-
-angular ( frontend )
-
-mongo ( database )
-
-nginx ( proxy url, loadbalancer )
-
---------
-
-
 ### ../../../app1201/Makefile 
 ```
+start: ng3
+
+stop: ng4
+
+install: ng1
 ng1:
 	nvm install 14
 	nvm use 14
@@ -434,7 +415,7 @@ exports.register = function (req, res) {
       if (err) {
         res
           .status(422)
-          .json({ error: `Ooops! something went wrong! ${err}::${user}` });
+          .json({ error: `Ooops!!! something went wrong!!! ${err}::${user}` });
       } else {
         return res.status(200).json({ registered: true });
       }
@@ -717,6 +698,30 @@ export class ProfileComponent implements OnInit {
 }
 
 ```
+### ../../../Do.md 
+--------
+
+# Development Environment
+
+Here we have a starting point to use a development environment
+
+### Tools:
+
+docker-compose ( orchestation )
+
+docker ( containers )
+
+express ( api - backend )
+
+angular ( frontend )
+
+mongo ( database )
+
+nginx ( proxy url, loadbalancer )
+
+--------
+
+
 ### ../../../app1201/frontend/src/app/auth/auth.component.ts 
 ```
 import { Component, OnInit } from '@angular/core';
